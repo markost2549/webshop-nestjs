@@ -4,6 +4,8 @@ import { Administrator } from '../../../entities/administrator.entity';
 import { Repository } from 'typeorm';
 import { AddAdministratorDto } from '../../dtos/administrator/add.administrator.dto';
 import { EditAdministratorDto } from 'src/dtos/administrator/edit.administrator.dto';
+import { ApiResponse } from 'src/misc/api.response.class';
+
 
 
 @Injectable()
@@ -21,7 +23,7 @@ export class AdministratorService {
         return this.administrator.findOne(id)
     }
 
-    add(data: AddAdministratorDto): Promise<Administrator> {
+    add(data: AddAdministratorDto): Promise<Administrator | ApiResponse> {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const crypto = require('crypto');
         const passwordHash = crypto.createHash('sha512')
@@ -32,11 +34,27 @@ export class AdministratorService {
         newAdmin.username = data.username;
         newAdmin.passwordHash = passwordHashString
 
-        return this.administrator.save(newAdmin)
+
+        return new Promise((resolve) => {
+            this.administrator.save(newAdmin)
+                .then(data => resolve(data))
+                .catch(err => {
+                    const response: ApiResponse = new ApiResponse('error', -1001)
+                    resolve(response)
+                })
+
+        })
     }
 
-    async editById(id: number, data: EditAdministratorDto) {
+    async editById(id: number, data: EditAdministratorDto): Promise<Administrator | ApiResponse> {
         const admin = await this.administrator.findOne(id);
+
+        if (admin === undefined) {
+            return new Promise((resolve) => {
+                resolve(new ApiResponse('error', -1002));
+            })
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const crypto = require('crypto');
         const passwordHash = crypto.createHash('sha512')
