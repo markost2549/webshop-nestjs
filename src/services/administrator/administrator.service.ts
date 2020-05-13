@@ -46,8 +46,5 @@ export class AdministratorService {
         admin.passwordHash = passwordHashString;
 
         return this.administrator.save(admin)
-
-
-
     }
 }
