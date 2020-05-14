@@ -19,8 +19,14 @@ export class AdministratorService {
         return this.administrator.find()
     }
 
-    getById(id: number): Promise<Administrator> {
-        return this.administrator.findOne(id)
+    getById(id: number): Promise<Administrator | ApiResponse> {
+        return new Promise(async (resolve) => {
+            const admin = await this.administrator.findOne(id);
+            if (admin === undefined) {
+                resolve(new ApiResponse('error', -1002));
+            }
+            resolve(admin)
+        })
     }
 
     add(data: AddAdministratorDto): Promise<Administrator | ApiResponse> {
