@@ -1,3 +1,3 @@
 export class EditAdministratorDto {
-    password: string;
+  password: string;
 }

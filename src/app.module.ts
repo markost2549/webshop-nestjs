@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './controllers/app.controller';
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { DatabaseConfiguration } from "../config/database.configuration";
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseConfiguration } from '../config/database.configuration';
 import { Administrator } from '../entities/administrator.entity';
 import { AdministratorService } from './services/administrator/administrator.service';
 import { ArticleFeature } from '../entities/article-feature.entity';
@@ -19,7 +19,10 @@ import { CategoryController } from './controllers/api/category.controller';
 import { CategoryService } from './services/category/category.service';
 import { ArticleService } from './services/article/article.service';
 import { ArticleController } from './controllers/api/article.controller';
-
+import { AuthController } from './controllers/api/auth.controller';
+import { useContainer } from 'typeorm';
+import { AuthMiddleware } from './middlewares/auth.middleware';
+import { PhotoSevice } from './services/photo/photo.service';
 
 @Module({
   imports: [
@@ -42,25 +45,38 @@ import { ArticleController } from './controllers/api/article.controller';
         Order,
         Photo,
         User,
-      ]
+      ],
     }),
     TypeOrmModule.forFeature([
       Administrator,
       Category,
-      Article
-    ])
+      Article,
+      ArticlePrice,
+      ArticleFeature,
+    ]),
   ],
   controllers: [
     AppController,
     AdministratorController,
     CategoryController,
-    ArticleController
-
+    ArticleController,
+    AuthController,
   ],
   providers: [
     AdministratorService,
+    ArticleService,
     CategoryService,
-    ArticleService
+    PhotoSevice
   ],
+  // exports: [
+  //   AdministratorService
+  // ]
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude('auth/*')
+      .forRoutes('api/*');
+  }
+}
