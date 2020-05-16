@@ -49,10 +49,16 @@ import { PhotoSevice } from './services/photo/photo.service';
     }),
     TypeOrmModule.forFeature([
       Administrator,
-      Category,
-      Article,
-      ArticlePrice,
       ArticleFeature,
+      ArticlePrice,
+      Article,
+      CartArticle,
+      Cart,
+      Category,
+      Feature,
+      Order,
+      Photo,
+      User,
     ]),
   ],
   controllers: [
@@ -66,11 +72,11 @@ import { PhotoSevice } from './services/photo/photo.service';
     AdministratorService,
     ArticleService,
     CategoryService,
-    PhotoSevice
+    PhotoSevice,
   ],
-  // exports: [
-  //   AdministratorService
-  // ]
+  exports: [
+    AdministratorService
+  ]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

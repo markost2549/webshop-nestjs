@@ -34,13 +34,13 @@ import { ApiResponse } from 'src/misc/api.response.class';
 })
 export class ArticleController {
   constructor(
-    public articleService: ArticleService,
+    public service: ArticleService,
     public photoSevice: PhotoSevice,
   ) { }
 
   @Post('createFull') // Post http://localhost:3000/api/article/createFull/
   createFullArticle(@Body() data: AddArticleDto) {
-    return this.articleService.createFullArtice(data);
+    return this.service.createFullArtice(data);
   }
 
   @Post(':id/uploadPhoto') //
@@ -49,18 +49,18 @@ export class ArticleController {
       storage: diskStorage({
         destination: StorageConfig.photoDestination,
         filename: (req, file, callback) => {
-          const original = file.originalname;
-          const normalized = original.replace(/\S+/g, '-');
+          const original: string = file.originalname;
+          const normalized = original.replace(/\s+/g, '-');
           const now = new Date();
           let datePart = '';
-          datePart += now.getFullYear().toString();
+          datePart += (now.getFullYear()).toString();
           datePart += (now.getMonth() + 1).toString();
-          datePart += now.getDate().toString;
+          datePart += (now.getDate()).toString();
 
           const randomPart: string =
             new Array(10)
               .fill(0)
-              .map(e => (Math.random() * 9).toString())
+              .map(e => (Math.random() * 9).toFixed(0).toString())
               .join('')
 
           const fileName = datePart + '-' + randomPart + '-' + normalized;
@@ -69,7 +69,7 @@ export class ArticleController {
 
       }),
       fileFilter: (req, file, callback) => {
-        if (!file.originalname.match(/\.(jpg|png)$/)) {
+        if (!file.originalname.toLowerCase().match(/\.(jpg|png)$/)) {
           callback(new Error('Bad file extenstion!'), false);
           return;
         }
@@ -87,9 +87,10 @@ export class ArticleController {
   )
   async uploadPhoto(@Param('id') articleId: number, @UploadedFile() photo): Promise<Photo | ApiResponse> {
 
+    console.log(photo)
     const newPhoto = new Photo();
     newPhoto.articleId = articleId;
-    newPhoto.imagePath = photo.fileName
+    newPhoto.imagePath = photo.filename;
 
     const savedPhoto = await this.photoSevice.add(newPhoto);
     if (!savedPhoto) {
