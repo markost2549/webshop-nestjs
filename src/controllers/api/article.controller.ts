@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { Crud } from '@nestjsx/crud';
 import { Article } from 'entities/article.entity';
 import { ArticleService } from 'src/services/article/article.service';
@@ -70,25 +70,39 @@ export class ArticleController {
       }),
       fileFilter: (req, file, callback) => {
         if (!file.originalname.toLowerCase().match(/\.(jpg|png)$/)) {
-          callback(new Error('Bad file extenstion!'), false);
+          callback(null, false);
+          req.fileFilterError = 'Bad file extension';
           return;
         }
         if (!(file.mimetype.includes('jpg') || file.mimetype.includes('png'))) {
-          callback(new Error('Bad file content!'), false);
+          req.fileFilterError = 'Bad file content!';
+          callback(null, false);
           return;
         }
         callback(null, true);
       },
       limits: {
         files: 1,
-        fieldSize: StorageConfig.photoMaxFileSize
+        fileSize: StorageConfig.photoMaxFileSize
       }
     })
   )
-  async uploadPhoto(@Param('id') articleId: number, @UploadedFile() photo): Promise<Photo | ApiResponse> {
+  async uploadPhoto(
+    @Param('id') articleId: number,
+    @UploadedFile() photo,
+    @Req() req,
+  ): Promise<Photo | ApiResponse> {
+
+    if (req.fileFilterError) {
+      return new ApiResponse('error', -4002, req.fileFilterError)
+    }
+
+    if (!photo) {
+      return new ApiResponse('error', -4002, 'File not uploaded');
+    }
 
     console.log(photo)
-    const newPhoto = new Photo();
+    const newPhoto: Photo = new Photo();
     newPhoto.articleId = articleId;
     newPhoto.imagePath = photo.filename;
 
