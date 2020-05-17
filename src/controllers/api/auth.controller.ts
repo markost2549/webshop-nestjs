@@ -11,7 +11,7 @@ import { jwtSecret } from 'config/jwt.secret';
 
 @Controller('auth')
 export class AuthController {
-  constructor(public administratorService: AdministratorService) {}
+  constructor(public administratorService: AdministratorService) { }
 
   @Post('login') //http://localhost:3000/auth/login
   async doLogin(
@@ -41,7 +41,7 @@ export class AuthController {
     const now = new Date();
     now.setDate(now.getDate() + 14);
     const istekTimestamp = now.getTime() / 1000;
-    jwtData.ext = istekTimestamp;
+    jwtData.exp = istekTimestamp;
     jwtData.ip = req.ip.toString();
     jwtData.ua = req.headers['user-agent'];
 

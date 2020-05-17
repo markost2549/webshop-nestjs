@@ -1,6 +1,6 @@
 import { TypeOrmCrudService } from "@nestjsx/crud-typeorm";
 import { Injectable } from "@nestjs/common";
-import { Photo } from "entities/photo.entity";
+import { Photo } from "src/entities/photo.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
