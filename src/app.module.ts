@@ -23,6 +23,8 @@ import { AuthController } from './controllers/api/auth.controller';
 import { useContainer } from 'typeorm';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { PhotoSevice } from './services/photo/photo.service';
+import { FeatureService } from './services/feature/feature.service';
+import { FeatureController } from './controllers/api/feature.controller';
 
 @Module({
   imports: [
@@ -67,12 +69,14 @@ import { PhotoSevice } from './services/photo/photo.service';
     CategoryController,
     ArticleController,
     AuthController,
+    FeatureController,
   ],
   providers: [
     AdministratorService,
     ArticleService,
     CategoryService,
     PhotoSevice,
+    FeatureService,
   ],
   exports: [
     AdministratorService
