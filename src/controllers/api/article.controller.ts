@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req, Delete } from '@nestjs/common';
 import { Crud } from '@nestjsx/crud';
 import { Article } from 'src/entities/article.entity';
 import { ArticleService } from 'src/services/article/article.service';
@@ -12,6 +12,7 @@ import { ApiResponse } from 'src/misc/api.response.class';
 import * as fileType from 'file-type'
 import * as fs from 'fs';
 import * as sharp from 'sharp'
+
 
 @Controller('api/article')
 @Crud({
@@ -50,7 +51,7 @@ export class ArticleController {
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
-        destination: StorageConfig.photoDestination,
+        destination: StorageConfig.photo.destination,
         filename: (req, file, callback) => {
           const original: string = file.originalname;
           const normalized = original.replace(/\s+/g, '-');
@@ -86,7 +87,7 @@ export class ArticleController {
       },
       limits: {
         files: 1,
-        fileSize: StorageConfig.photo.maxSize
+        fileSize: StorageConfig.photo.maxSize,
       }
     })
   )
@@ -95,7 +96,6 @@ export class ArticleController {
     @UploadedFile() photo,
     @Req() req,
   ): Promise<Photo | ApiResponse> {
-
     if (req.fileFilterError) {
       return new ApiResponse('error', -4002, req.fileFilterError)
     }
@@ -136,17 +136,49 @@ export class ArticleController {
     const fileName = photo.filename;
 
     const destinationFilePath =
-      StorageConfig.photoDestination +
-      resizeSettings.resize.directory +
+      StorageConfig.photo.destination +
+      resizeSettings.directory +
       fileName;
 
     await sharp(originalFilePath)
       .resize({
         fit: 'cover',
-        width: resizeSettings.resize.width,
-        height: resizeSettings.resize.height,
+        width: resizeSettings.width,
+        height: resizeSettings.height,
 
       })
       .toFile(destinationFilePath)
+  }
+
+  @Delete(':articleId/deletePhoto/:photoId')
+  public async deletePhoto(
+    @Param('articleId') articleId: number,
+    @Param('photoId') photoId: number
+  ) {
+    const photo = await this.photoSevice.findOne({
+      articleId: articleId,
+      photoId: photoId,
+    })
+
+    if (!photo) {
+      return new ApiResponse('error', -4004, 'Photo not found')
+    }
+
+    try {
+      fs.unlinkSync(StorageConfig.photo.destination + photo.imagePath)
+      fs.unlinkSync(StorageConfig.photo.destination + StorageConfig.photo.resize.thumb.directory + photo.imagePath)
+      fs.unlinkSync(StorageConfig.photo.destination + StorageConfig.photo.resize.small.directory + photo.imagePath)
+    } catch (e) {
+
+    }
+
+    const deleteResult = await this.photoSevice.deleteById(photoId);
+
+    if (deleteResult.affected === 0) {
+      return new ApiResponse('error', -4004, 'Photo not found')
+    }
+
+    return new ApiResponse('Ok', 0, 'One photo deleted!');
+
   }
 }
