@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req, Delete, Patch } from '@nestjs/common';
 import { Crud } from '@nestjsx/crud';
 import { Article } from 'src/entities/article.entity';
 import { ArticleService } from 'src/services/article/article.service';
@@ -12,6 +12,7 @@ import { ApiResponse } from 'src/misc/api.response.class';
 import * as fileType from 'file-type'
 import * as fs from 'fs';
 import * as sharp from 'sharp'
+import { EditArticleDto } from '../../dtos/article/edit.article.dto';
 
 
 @Controller('api/article')
@@ -21,7 +22,7 @@ import * as sharp from 'sharp'
   },
   params: {
     id: {
-      field: 'article_Id',
+      field: 'articleId',
       type: 'number',
       primary: true,
     },
@@ -35,6 +36,9 @@ import * as sharp from 'sharp'
       features: { eager: true },
     },
   },
+  routes: {
+    exclude: ['updateOneBase', 'replaceOneBase', 'deleteOneBase']
+  }
 })
 export class ArticleController {
   constructor(
@@ -45,6 +49,11 @@ export class ArticleController {
   @Post('createFull') // Post http://localhost:3000/api/article/createFull/
   createFullArticle(@Body() data: AddArticleDto) {
     return this.service.createFullArtice(data);
+  }
+
+  @Patch(':id')
+  editFullArticle(@Param('id') id: number, @Body() data: EditArticleDto) {
+    return this.service.editFullArticle(id, data);
   }
 
   @Post(':id/uploadPhoto') //
