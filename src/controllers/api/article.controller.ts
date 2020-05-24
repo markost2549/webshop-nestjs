@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req, Delete, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseInterceptors, UploadedFile, Req, Delete, Patch, UseGuards } from '@nestjs/common';
 import { Crud } from '@nestjsx/crud';
 import { Article } from 'src/entities/article.entity';
 import { ArticleService } from 'src/services/article/article.service';
@@ -13,6 +13,8 @@ import * as fileType from 'file-type'
 import * as fs from 'fs';
 import * as sharp from 'sharp'
 import { EditArticleDto } from '../../dtos/article/edit.article.dto';
+import { AllowToRoles } from '../../misc/allow.to.roles.descriptor';
+import { RoleCheckerGuard } from '../../misc/role.checker.guard';
 
 
 @Controller('api/article')
@@ -47,16 +49,22 @@ export class ArticleController {
   ) { }
 
   @Post('createFull') // Post http://localhost:3000/api/article/createFull/
+  @UseGuards(RoleCheckerGuard)
+  @AllowToRoles('administrator')
   createFullArticle(@Body() data: AddArticleDto) {
     return this.service.createFullArtice(data);
   }
 
   @Patch(':id')
+  @UseGuards(RoleCheckerGuard)
+  @AllowToRoles('administrator')
   editFullArticle(@Param('id') id: number, @Body() data: EditArticleDto) {
     return this.service.editFullArticle(id, data);
   }
 
   @Post(':id/uploadPhoto') //
+  @UseGuards(RoleCheckerGuard)
+  @AllowToRoles('administrator')
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
@@ -160,6 +168,8 @@ export class ArticleController {
   }
 
   @Delete(':articleId/deletePhoto/:photoId')
+  @UseGuards(RoleCheckerGuard)
+  @AllowToRoles('administrator')
   public async deletePhoto(
     @Param('articleId') articleId: number,
     @Param('photoId') photoId: number
