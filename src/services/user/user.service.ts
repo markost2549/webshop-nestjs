@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { UserRegistrationDto } from '../../dtos/user/user.registration.dto';
 import { ApiResponse } from '../../misc/api.response.class';
 import * as crypto from 'crypto';
-import { throwError } from 'rxjs';
 
 @Injectable()
 export class UserService extends TypeOrmCrudService<User> {
@@ -38,8 +37,18 @@ export class UserService extends TypeOrmCrudService<User> {
         } catch (e) {
             return new ApiResponse('error', -6001, 'User account cannot be created')
         }
+    }
 
+    async getById(id: number) {
+        return await this.user.findOne(id);
+    }
 
+    async getByEmail(email: string): Promise<User | null> {
+        const user = await this.user.findOne({ email: email });
+        if (!user) {
+            return null
+        }
+        return user
     }
 
 }
