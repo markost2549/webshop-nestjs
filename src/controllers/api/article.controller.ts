@@ -15,6 +15,7 @@ import * as sharp from 'sharp'
 import { EditArticleDto } from '../../dtos/article/edit.article.dto';
 import { AllowToRoles } from '../../misc/allow.to.roles.descriptor';
 import { RoleCheckerGuard } from '../../misc/role.checker.guard';
+import { on } from 'cluster';
 
 
 @Controller('api/article')
@@ -39,7 +40,22 @@ import { RoleCheckerGuard } from '../../misc/role.checker.guard';
     },
   },
   routes: {
-    exclude: ['updateOneBase', 'replaceOneBase', 'deleteOneBase']
+    only: [
+      'getOneBase',
+      'getManyBase'
+    ],
+    getOneBase: {
+      decorators: [
+        UseGuards(RoleCheckerGuard),
+        AllowToRoles('administrator', 'user')
+      ]
+    },
+    getManyBase: {
+      decorators: [
+        UseGuards(RoleCheckerGuard),
+        AllowToRoles('administrator', 'user')
+      ]
+    }
   }
 })
 export class ArticleController {
@@ -48,7 +64,7 @@ export class ArticleController {
     public photoSevice: PhotoSevice,
   ) { }
 
-  @Post('createFull') // Post http://localhost:3000/api/article/createFull/
+  @Post() // Post http://localhost:3000/api/article/createFull/
   @UseGuards(RoleCheckerGuard)
   @AllowToRoles('administrator')
   createFullArticle(@Body() data: AddArticleDto) {
