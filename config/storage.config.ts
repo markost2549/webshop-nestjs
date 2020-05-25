@@ -1,6 +1,8 @@
 export const StorageConfig = {
     photo: {
         destination: '../storage/photos/',
+        maxAge: 1000 * 60 * 60 * 7,
+        urlPrefix: '/assets/photos',
         maxSize: 1024 * 1024 * 3,
         resize: {
             thumb: {
@@ -15,4 +17,4 @@ export const StorageConfig = {
             }
         }
     }
-}
+};
