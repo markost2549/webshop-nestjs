@@ -6,10 +6,16 @@ import { Request } from 'express';
 import { Cart } from '../../entities/cart.entity';
 import { AddArticleToCartDto } from '../../dtos/cart/add.article.to.cart.dto';
 import { EditArticleInCartDto } from '../../dtos/cart/edit.article.in.cart.dto';
+import { Order } from '../../entities/order.entity';
+import { OrderService } from '../../services/order/order.service';
+import { ApiResponse } from '../../misc/api.response.class';
 
 @Controller('api/user/cart')
 export class UserCartController {
-    constructor(private cartService: CartService) { }
+    constructor(
+        private cartService: CartService,
+        private orderService: OrderService
+    ) { }
 
     private async getActiveCartById(userId: number): Promise<Cart> {
         let cart = await this.cartService.getLastActiveCartByUserId(userId);
@@ -42,4 +48,13 @@ export class UserCartController {
         const cart = await this.cartService.getLastActiveCartByUserId(req.token.id);
         return await this.cartService.changeQuantity(cart.cartId, data.articleId, data.quantity)
     }
+
+    @Post('makeOrder')
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('user')
+    async makeOrder(@Req() req: Request): Promise<Order | ApiResponse> {
+        const cart = await this.getActiveCartById(req.token.id);
+        return await this.orderService.add(cart.cartId);
+    }
+
 }
