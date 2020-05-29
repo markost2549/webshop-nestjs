@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { Article } from "./article.entity";
 import { Feature } from "./feature.entity";
+import * as Validator from 'class-validator';
 
 @Index("fk_category_parent__category_id_idx", ["parentCategoryId"], {})
 @Index("uq_category_image_path", ["imagePath"], { unique: true })
@@ -18,13 +19,20 @@ export class Category {
   @PrimaryGeneratedColumn({ type: "int", name: "category_id", unsigned: true })
   categoryId: number;
 
-  @Column("varchar", { name: "name", unique: true, length: 50 })
+  @Column({ type: "varchar", name: "name", unique: true, length: 50 })
+  @Validator.IsNotEmpty()
+  @Validator.IsString()
+  @Validator.Length(5, 32)
   name: string;
 
-  @Column("varchar", { name: "image_path", unique: true, length: 50 })
+  @Column({ type: "varchar", name: "image_path", unique: true, length: 50 })
+  @Validator.IsNotEmpty()
+  @Validator.IsString()
+  @Validator.Length(1, 128)
   imagePath: string;
 
-  @Column("int", {
+  @Column({
+    type: "int",
     name: "parent__category_id",
     nullable: true,
     unsigned: true,
