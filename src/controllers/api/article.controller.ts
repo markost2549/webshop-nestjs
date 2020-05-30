@@ -16,6 +16,7 @@ import { EditArticleDto } from '../../dtos/article/edit.article.dto';
 import { AllowToRoles } from '../../misc/allow.to.roles.descriptor';
 import { RoleCheckerGuard } from '../../misc/role.checker.guard';
 import { on } from 'cluster';
+import { ArticleSearchDto } from '../../dtos/article/article.search.dto';
 
 
 @Controller('api/article')
@@ -214,6 +215,14 @@ export class ArticleController {
     }
 
     return new ApiResponse('Ok', 0, 'One photo deleted!');
-
   }
+
+  @Post('search')
+  @UseGuards(RoleCheckerGuard)
+  @AllowToRoles('administrator', 'user')
+  async search(@Body() data: ArticleSearchDto): Promise<Article[]> {
+    return await this.service.search(data)
+  }
+
+
 }
