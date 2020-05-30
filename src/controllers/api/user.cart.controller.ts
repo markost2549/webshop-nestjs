@@ -9,12 +9,14 @@ import { EditArticleInCartDto } from '../../dtos/cart/edit.article.in.cart.dto';
 import { Order } from '../../entities/order.entity';
 import { OrderService } from '../../services/order/order.service';
 import { ApiResponse } from '../../misc/api.response.class';
+import { OrderMailerService } from '../../services/order/order.mailer.service';
 
 @Controller('api/user/cart')
 export class UserCartController {
     constructor(
         private cartService: CartService,
-        private orderService: OrderService
+        private orderService: OrderService,
+        private orderMailer: OrderMailerService
     ) { }
 
     private async getActiveCartById(userId: number): Promise<Cart> {
@@ -54,7 +56,15 @@ export class UserCartController {
     @AllowToRoles('user')
     async makeOrder(@Req() req: Request): Promise<Order | ApiResponse> {
         const cart = await this.getActiveCartById(req.token.id);
-        return await this.orderService.add(cart.cartId);
+        const order = await this.orderService.add(cart.cartId);
+
+        if (order instanceof ApiResponse) {
+            return order;
+        }
+
+        await this.orderMailer.sendOrderEmail(order)
+
+        return order;
     }
 
 }
