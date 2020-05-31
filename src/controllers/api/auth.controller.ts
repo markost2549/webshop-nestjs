@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Put } from '@nestjs/common';
+import { Controller, Post, Body, Req, Put, HttpException, HttpStatus } from '@nestjs/common';
 import { AdministratorService } from 'src/services/administrator/administrator.service';
 import { LoginAdministratorDto } from 'src/dtos/administrator/login.administrator.dto';
 import { ApiResponse } from 'src/misc/api.response.class';
@@ -11,6 +11,8 @@ import { jwtSecret } from 'config/jwt.secret';
 import { UserRegistrationDto } from '../../dtos/user/user.registration.dto';
 import { UserService } from '../../services/user/user.service';
 import { LoginUserDto } from '../../dtos/user/login.user.dto';
+import { JwtRefreshDataDto } from '../../dtos/auth/jwt.refresh.dto';
+import { UserRefreshTokenDto } from '../../dtos/auth/user.refresh.toke.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -45,9 +47,8 @@ export class AuthController {
     jwtData.id = administrator.administratorId;
     jwtData.identity = administrator.username;
 
-    const now = new Date();
-    now.setDate(now.getDate() + 1);
-    const istekTimestamp = now.getTime() / 1000;
+
+    const istekTimestamp = this.getDatePlus(60 * 5);
     jwtData.exp = istekTimestamp;
     jwtData.ip = req.ip.toString();
     jwtData.ua = req.headers['user-agent'];
@@ -58,6 +59,8 @@ export class AuthController {
       administrator.administratorId,
       administrator.username,
       token,
+      "",
+      "",
     );
 
     return new Promise(resolve => resolve(responseObject));
@@ -92,22 +95,113 @@ export class AuthController {
     jwtData.id = user.userId;
     jwtData.identity = user.email;
 
-    const now = new Date();
-    now.setDate(now.getDate() + 1);
-    const istekTimestamp = now.getTime() / 1000;
+
+    const istekTimestamp = this.getDatePlus(60 * 5);
     jwtData.exp = istekTimestamp;
+
     jwtData.ip = req.ip.toString();
     jwtData.ua = req.headers['user-agent'];
 
     const token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret);
 
+    const jwtRefreshData = new JwtRefreshDataDto();
+    jwtRefreshData.role = jwtData.role;
+    jwtRefreshData.id = jwtData.id;
+    jwtRefreshData.identity = jwtData.identity;
+    jwtRefreshData.exp = this.getDatePlus(60 * 60 * 24 * 31);
+    jwtRefreshData.ip = jwtData.ip;
+    jwtRefreshData.ua = jwtData.ua;
+
+    const refreshToken: string = jwt.sign(jwtRefreshData.toPlainObject(), jwtSecret);
+
     const responseObject = new LoginInfoDto(
       user.userId,
       user.email,
       token,
+      refreshToken,
+      this.getIsoDate(jwtRefreshData.exp),
+    );
+
+    await this.userService.addToken(
+      user.userId,
+      refreshToken,
+      this.getDatabaseDateFormat(this.getIsoDate(jwtRefreshData.exp))
     );
 
     return new Promise(resolve => resolve(responseObject));
   }
 
+  @Post('user/refresh')
+  async userTokenRefresh(@Req() req: Request, @Body() data: UserRefreshTokenDto): Promise<LoginInfoDto | ApiResponse> {
+    const userToken = await this.userService.getUserToken(data.token);
+
+    if (!userToken) {
+      return new ApiResponse('error', -10002, 'No such refresh token')
+    }
+    if (userToken.isValid === 0) {
+      return new ApiResponse('error', -10003, 'Token is no longer valid')
+    }
+
+    const now = new Date();
+    const expireDate = new Date(userToken.expiresAt);
+
+    if (expireDate.getTime() < now.getTime()) {
+      return new ApiResponse('error', -10004, 'Token has expired')
+    }
+
+    let jwtRefreshData: JwtRefreshDataDto;
+
+    try {
+      jwtRefreshData = jwt.verify(data.token, jwtSecret);
+    } catch (e) {
+      throw new HttpException('Bad token found', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (!jwtRefreshData) {
+      throw new HttpException('Bad token found', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (jwtRefreshData.ip !== req.ip.toString()) {
+      throw new HttpException('IP mismath', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (jwtRefreshData.ua !== req.headers['user-agent']) {
+      throw new HttpException('UE mismath', HttpStatus.UNAUTHORIZED);
+    }
+
+    const jwtData = new JwtDataDto();
+    jwtData.role = jwtRefreshData.role;
+    jwtData.id = jwtRefreshData.id;
+    jwtData.identity = jwtRefreshData.identity;
+    jwtData.exp = this.getDatePlus(60 * 5);
+    jwtData.ip = jwtRefreshData.ip;
+    jwtData.ua = jwtRefreshData.ua;
+
+    const token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret)
+
+    const responseObject = new LoginInfoDto(
+      jwtData.id,
+      jwtData.identity,
+      token,
+      data.token,
+      this.getIsoDate(jwtRefreshData.exp),
+    );
+
+    return responseObject;
+
+  }
+
+  private getDatePlus(numberOfSeconds: number): number {
+    return new Date().getTime() / 1000 + numberOfSeconds;
+  }
+
+  private getIsoDate(timestamp: number): string {
+    const date = new Date();
+    date.setTime(timestamp * 1000);
+    return date.toISOString();
+  }
+
+  private getDatabaseDateFormat(isoFormat: string): string {
+    return isoFormat.substr(0, 19).replace('T', ' ');
+  }
 }
