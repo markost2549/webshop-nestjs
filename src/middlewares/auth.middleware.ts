@@ -37,22 +37,22 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     if (jwtData.ip !== req.ip.toString()) {
-      throw new HttpException('IP mismath', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('IP mismatch', HttpStatus.UNAUTHORIZED);
     }
 
     if (jwtData.ua !== req.headers['user-agent']) {
-      throw new HttpException('UE mismath', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('UE mismatch', HttpStatus.UNAUTHORIZED);
     }
 
     if (jwtData.role === 'administrator') {
       const administrator = await this.administratorService.getById(jwtData.id);
       if (!administrator) {
-        throw new HttpException('Account now found', HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Account not found', HttpStatus.UNAUTHORIZED);
       }
     } else if (jwtData.role === 'user') {
       const user = await this.userService.getById(jwtData.id);
       if (!user) {
-        throw new HttpException('Account now found', HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Account not found', HttpStatus.UNAUTHORIZED);
       }
     }
 
