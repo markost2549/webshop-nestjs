@@ -2,12 +2,13 @@ import * as Validator from "class-validator";
 import { ArticleSearchFeatureComponentDto } from './article.search.component.dto';
 
 export class ArticleSearchDto {
-    //keywords
+    //Keywords
     @Validator.IsOptional()
     @Validator.IsString()
-    @Validator.Length(2, 128)
+    @Validator.Length(0, 128)
     keywords: string;
 
+    //Category ID
     @Validator.IsNotEmpty()
     @Validator.IsPositive()
     @Validator.IsNumber({
@@ -17,6 +18,7 @@ export class ArticleSearchDto {
     })
     categoryId: number;
 
+    //Price MIN
     @Validator.IsOptional()
     @Validator.IsPositive()
     @Validator.IsNumber({
@@ -26,6 +28,7 @@ export class ArticleSearchDto {
     })
     priceMin: number;
 
+    //Price MAX
     @Validator.IsOptional()
     @Validator.IsPositive()
     @Validator.IsNumber({
