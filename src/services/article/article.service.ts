@@ -116,9 +116,11 @@ export class ArticleService extends TypeOrmCrudService<Article> {
     builder.innerJoinAndSelect(
       'article.articlePrices',
       'ap',
-      //Los primer
       `ap.createdAt = (SELECT MAX(ap.created_at) FROM article_price as ap WHERE ap.article_id = article.article_id)`)
+
     builder.leftJoinAndSelect('article.articleFeatures', 'af')
+    builder.leftJoinAndSelect('article.features', 'features')
+    builder.leftJoinAndSelect('article.photos', 'photos')
 
     builder.where('article.categoryId = :id', { id: data.categoryId })
 
@@ -182,15 +184,20 @@ export class ArticleService extends TypeOrmCrudService<Article> {
     builder.skip(page * perPage)
     builder.take(perPage)
 
-    const articleIds = await (await builder.getMany()).map(article => article.articleId);
+    // const articleIds = await (await builder.getMany()).map(article => article.articleId);
+    const articles = await builder.getMany();
 
-    if (articleIds.length === 0) {
+    if (articles.length === 0) {
       return new ApiResponse("ok", 0, "No articles found for these search parameters");
     }
 
-    return await this.article.find({
-      where: { articleId: In(articleIds) },
-      relations: ['category', 'features', 'articleFeatures', 'articlePrices', 'photos'],
-    })
+    return articles;
+
+    // return await this.article.find({
+    //   where: { articleId: In(articleIds) },
+    //   relations: ['category', 'features', 'articleFeatures', 'articlePrices', 'photos'],
+    // })
+
+
   }
 }
