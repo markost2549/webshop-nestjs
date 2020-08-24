@@ -35,4 +35,4 @@ lerna-debug.log*
 
 # IGNORE
 .vercel
-config/mail.configuration.ts
+#config/mail.configuration.ts
