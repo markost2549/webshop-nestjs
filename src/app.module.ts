@@ -33,6 +33,7 @@ import { MailConfig } from '../config/mail.configuration';
 import { OrderMailerService } from './services/order/order.mailer.service';
 import { AdmininstratorOrderController } from './controllers/api/administrator.order.controller';
 import { UserToken } from './entities/user-token.entity';
+import { AdministratorToken } from './entities/administrator-token.entity';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { UserToken } from './entities/user-token.entity';
         Photo,
         User,
         UserToken,
+        AdministratorToken
       ],
     }),
     TypeOrmModule.forFeature([
@@ -71,6 +73,7 @@ import { UserToken } from './entities/user-token.entity';
       Photo,
       User,
       UserToken,
+      AdministratorToken
     ]),
     // smtps://username:password@smtp.gmail.com
     MailerModule.forRoot({
