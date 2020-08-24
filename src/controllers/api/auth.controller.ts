@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Put, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { AdministratorService } from 'src/services/administrator/administrator.service';
 import { LoginAdministratorDto } from 'src/dtos/administrator/login.administrator.dto';
 import { ApiResponse } from 'src/misc/api.response.class';
@@ -13,6 +13,7 @@ import { UserService } from '../../services/user/user.service';
 import { LoginUserDto } from '../../dtos/user/login.user.dto';
 import { JwtRefreshDataDto } from '../../dtos/auth/jwt.refresh.dto';
 import { UserRefreshTokenDto } from '../../dtos/auth/user.refresh.toke.dto';
+import { AdministratorRefreshTokenDto } from 'src/dtos/auth/administrator.refresh.toke.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -64,6 +65,66 @@ export class AuthController {
     );
 
     return new Promise(resolve => resolve(responseObject));
+  }
+
+  @Post('administrator/refresh')
+  async administratorTokenRefresh(@Req() req: Request, @Body() data: AdministratorRefreshTokenDto): Promise<LoginInfoDto | ApiResponse> {
+    const administratorToken = await this.administratorService.getAdministratorToken(data.token);
+
+    if (!administratorToken) {
+      return new ApiResponse('error', -10002, 'No such refresh token')
+    }
+    if (administratorToken.isValid === 0) {
+      return new ApiResponse('error', -10003, 'Token is no longer valid')
+    }
+
+    const now = new Date();
+    const expireDate = new Date(administratorToken.expiresAt);
+
+    if (expireDate.getTime() < now.getTime()) {
+      return new ApiResponse('error', -10004, 'Token has expired')
+    }
+
+    let jwtRefreshData: JwtRefreshDataDto;
+
+    try {
+      jwtRefreshData = jwt.verify(data.token, jwtSecret);
+    } catch (e) {
+      throw new HttpException('Bad token found', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (!jwtRefreshData) {
+      throw new HttpException('Bad token found', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (jwtRefreshData.ip !== req.ip.toString()) {
+      throw new HttpException('IP mismath', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (jwtRefreshData.ua !== req.headers['user-agent']) {
+      throw new HttpException('UE mismath', HttpStatus.UNAUTHORIZED);
+    }
+
+    const jwtData = new JwtDataDto();
+    jwtData.role = jwtRefreshData.role;
+    jwtData.id = jwtRefreshData.id;
+    jwtData.identity = jwtRefreshData.identity;
+    jwtData.exp = this.getDatePlus(60 * 5);
+    jwtData.ip = jwtRefreshData.ip;
+    jwtData.ua = jwtRefreshData.ua;
+
+    const token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret)
+
+    const responseObject = new LoginInfoDto(
+      jwtData.id,
+      jwtData.identity,
+      token,
+      data.token,
+      this.getIsoDate(jwtRefreshData.exp),
+    );
+
+    return responseObject;
+
   }
 
   @Post('user/register')
