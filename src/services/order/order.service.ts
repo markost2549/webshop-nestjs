@@ -55,6 +55,20 @@ export class OrderService {
             ]
         });
     }
+    async getAllByUserid(userId: number) {
+        return await this.order.find(
+            {
+                where: { userId: userId, },
+                relations: [
+                    'cart',
+                    'cart.user',
+                    'cart.cartArticles',
+                    'cart.cartArticles.article',
+                    'cart.cartArticles.article.category',
+                    'cart.cartArticles.article.articlePrices',
+                ]
+            });
+    }
 
     async changeStatus(orderId: number, newStatus: "rejected" | "accepted" | "shipped" | "pending") {
         const order = await this.getById(orderId);
