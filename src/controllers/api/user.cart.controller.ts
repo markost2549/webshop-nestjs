@@ -62,7 +62,7 @@ export class UserCartController {
             return order;
         }
 
-        await this.orderMailer.sendOrderEmail(order)
+        // await this.orderMailer.sendOrderEmail(order)
 
         return order;
     }
