@@ -10,6 +10,7 @@ import { Order } from '../../entities/order.entity';
 import { OrderService } from '../../services/order/order.service';
 import { ApiResponse } from '../../misc/api.response.class';
 import { OrderMailerService } from '../../services/order/order.mailer.service';
+import { MailConfig } from 'config/mail.configuration';
 
 @Controller('api/user/cart')
 export class UserCartController {
@@ -62,7 +63,10 @@ export class UserCartController {
             return order;
         }
 
-        // await this.orderMailer.sendOrderEmail(order)
+        //Send email
+        if (MailConfig.useEmail) {
+            await this.orderMailer.sendOrderEmail(order)
+        }
 
         return order;
     }
