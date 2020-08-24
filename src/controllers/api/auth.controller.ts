@@ -12,8 +12,8 @@ import { UserRegistrationDto } from '../../dtos/user/user.registration.dto';
 import { UserService } from '../../services/user/user.service';
 import { LoginUserDto } from '../../dtos/user/login.user.dto';
 import { JwtRefreshDataDto } from '../../dtos/auth/jwt.refresh.dto';
-import { UserRefreshTokenDto } from '../../dtos/auth/user.refresh.toke.dto';
-import { AdministratorRefreshTokenDto } from 'src/dtos/auth/administrator.refresh.toke.dto';
+import { UserRefreshTokenDto } from '../../dtos/auth/user.refresh.token.dto';
+import { AdministratorRefreshTokenDto } from 'src/dtos/auth/administrator.refresh.token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -56,12 +56,22 @@ export class AuthController {
 
     const token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret);
 
+    const jwtRefreshData = new JwtRefreshDataDto();
+    jwtRefreshData.role = jwtData.role;
+    jwtRefreshData.id = jwtData.id;
+    jwtRefreshData.identity = jwtData.identity;
+    jwtRefreshData.exp = this.getDatePlus(60 * 60 * 24 * 31);
+    jwtRefreshData.ip = jwtData.ip;
+    jwtRefreshData.ua = jwtData.ua;
+
+    const refreshToken: string = jwt.sign(jwtRefreshData.toPlainObject(), jwtSecret);
+
     const responseObject = new LoginInfoDto(
       administrator.administratorId,
       administrator.username,
       token,
-      "",
-      "",
+      refreshToken,
+      this.getIsoDate(jwtRefreshData.exp),
     );
 
     return new Promise(resolve => resolve(responseObject));
