@@ -49,7 +49,7 @@ export class AuthController {
     jwtData.identity = administrator.username;
 
 
-    const istekTimestamp = this.getDatePlus(60 * 5);
+    const istekTimestamp = this.getDatePlus(60 * 60 * 24);
     jwtData.exp = istekTimestamp;
     jwtData.ip = req.ip.toString();
     jwtData.ua = req.headers['user-agent'];
@@ -119,7 +119,7 @@ export class AuthController {
     jwtData.role = jwtRefreshData.role;
     jwtData.id = jwtRefreshData.id;
     jwtData.identity = jwtRefreshData.identity;
-    jwtData.exp = this.getDatePlus(60 * 5);
+    jwtData.exp = this.getDatePlus(60 * 60 * 24);
     jwtData.ip = jwtRefreshData.ip;
     jwtData.ua = jwtRefreshData.ua;
 
@@ -167,7 +167,7 @@ export class AuthController {
     jwtData.identity = user.email;
 
 
-    const istekTimestamp = this.getDatePlus(60 * 5);
+    const istekTimestamp = this.getDatePlus(60 * 60 * 24);
     jwtData.exp = istekTimestamp;
 
     jwtData.ip = req.ip.toString();
@@ -244,7 +244,7 @@ export class AuthController {
     jwtData.role = jwtRefreshData.role;
     jwtData.id = jwtRefreshData.id;
     jwtData.identity = jwtRefreshData.identity;
-    jwtData.exp = this.getDatePlus(60 * 5);
+    jwtData.exp = this.getDatePlus(60 * 60 * 24);
     jwtData.ip = jwtRefreshData.ip;
     jwtData.ua = jwtRefreshData.ua;
 
