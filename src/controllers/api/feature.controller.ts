@@ -1,9 +1,10 @@
-import { Controller, UseGuards } from "@nestjs/common";
+import { Controller, UseGuards, Get, Param } from "@nestjs/common";
 import { Crud } from "@nestjsx/crud";
 import { Feature } from '../../entities/feature.entity';
 import { FeatureService } from '../../services/feature/feature.service';
 import { RoleCheckerGuard } from '../../misc/role.checker.guard';
 import { AllowToRoles } from '../../misc/allow.to.roles.descriptor';
+import DistinctFeatureValuesDto from "src/dtos/feature/distinct.feature.values.dto";
 
 @Controller('api/feature')
 @Crud({
@@ -74,4 +75,10 @@ import { AllowToRoles } from '../../misc/allow.to.roles.descriptor';
 export class FeatureController {
     constructor(public service: FeatureService) { }
 
+    @Get('values/:categoryId')
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('administrator', 'user')
+    async getDistinctValuesByCategoryId(@Param('categoryId') categoryId: number): Promise<DistinctFeatureValuesDto> {
+        return await this.service.getDistinctValuesByCategoryId(categoryId);
+    }
 }
