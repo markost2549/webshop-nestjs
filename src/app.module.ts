@@ -28,22 +28,24 @@ import { UserService } from './services/user/user.service';
 import { CartService } from './services/cart/cart.service';
 import { UserCartController } from './controllers/api/user.cart.controller';
 import { OrderService } from './services/order/order.service';
-import { MailerModule } from '@nestjs-modules/mailer'
+import { MailerModule } from '@nestjs-modules/mailer';
 import { MailConfig } from '../config/mail.configuration';
 import { OrderMailerService } from './services/order/order.mailer.service';
 import { AdmininstratorOrderController } from './controllers/api/administrator.order.controller';
 import { UserToken } from './entities/user-token.entity';
 import { AdministratorToken } from './entities/administrator-token.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: DatabaseConfiguration.hostname,
-      port: 3306,
-      username: DatabaseConfiguration.username,
-      password: DatabaseConfiguration.password,
-      database: DatabaseConfiguration.database,
+      url: process.env.JAWSDB_URL,
+      // host: DatabaseConfiguration.hostname,
+      // port: 3306,
+      // username: DatabaseConfiguration.username,
+      // password: DatabaseConfiguration.password,
+      // database: DatabaseConfiguration.database,
       entities: [
         Administrator,
         ArticleFeature,
@@ -57,7 +59,7 @@ import { AdministratorToken } from './entities/administrator-token.entity';
         Photo,
         User,
         UserToken,
-        AdministratorToken
+        AdministratorToken,
       ],
     }),
     TypeOrmModule.forFeature([
@@ -73,19 +75,23 @@ import { AdministratorToken } from './entities/administrator-token.entity';
       Photo,
       User,
       UserToken,
-      AdministratorToken
+      AdministratorToken,
     ]),
     // smtps://username:password@smtp.gmail.com
     MailerModule.forRoot({
-      transport: 'smtps://' +
-        MailConfig.username + ':' +
-        MailConfig.password + '@' +
+      transport:
+        'smtps://' +
+        MailConfig.username +
+        ':' +
+        MailConfig.password +
+        '@' +
         MailConfig.hostname,
 
       defaults: {
         from: MailConfig.senderEmail,
-      }
-    })
+      },
+    }),
+    ConfigModule.forRoot({ isGlobal: true }),
   ],
   controllers: [
     AppController,
@@ -106,13 +112,9 @@ import { AdministratorToken } from './entities/administrator-token.entity';
     UserService,
     CartService,
     OrderService,
-    OrderMailerService
+    OrderMailerService,
   ],
-  exports: [
-    AdministratorService,
-    UserService,
-
-  ]
+  exports: [AdministratorService, UserService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

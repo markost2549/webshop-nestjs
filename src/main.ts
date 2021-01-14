@@ -4,19 +4,16 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { StorageConfig } from '../config/storage.config';
 import { ValidationPipe } from '@nestjs/common';
 
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(StorageConfig.photo.destination, {
     prefix: StorageConfig.photo.urlPrefix,
     maxAge: StorageConfig.photo.maxAge,
-    index: false //7 dana
-  })
+    index: false, //7 dana
+  });
 
-  app.useGlobalPipes(new ValidationPipe())
-
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
-
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
