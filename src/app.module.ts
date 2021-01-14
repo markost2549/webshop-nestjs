@@ -40,12 +40,13 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      url: process.env.JAWSDB_URL,
-      // host: DatabaseConfiguration.hostname,
-      // port: 3306,
-      // username: DatabaseConfiguration.username,
-      // password: DatabaseConfiguration.password,
-      // database: DatabaseConfiguration.database,
+      // url: process.env.JAWSDB_URL,
+      retryAttempts: 2,
+      username: process.env.JAWS_USER || DatabaseConfiguration.username,
+      password: process.env.JAWS_PASS || DatabaseConfiguration.password,
+      database: process.env.JAWS_DB || DatabaseConfiguration.database,
+      host: process.env.JAWS_HOST || DatabaseConfiguration.hostname,
+      port: 3306,
       entities: [
         Administrator,
         ArticleFeature,
