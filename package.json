@@ -31,7 +31,7 @@
         "@nestjsx/crud-request": "^4.6.1",
         "@nestjsx/crud-typeorm": "^4.6.1",
         "class-transformer": "^0.2.3",
-        "class-validator": "^0.12.2",
+        "class-validator": "^0.14.0",
         "file-type": "^14.4.0",
         "jsonwebtoken": "^8.5.1",
         "mysql": "^2.18.1",
